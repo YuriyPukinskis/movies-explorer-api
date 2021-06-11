@@ -13,8 +13,9 @@ router.get('/me', getMe);
 
 router.patch('/me', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-  }).unknown(true),
+    name: Joi.string().required(),
+    email: Joi.string().email({ tlds: { allow: false } }).required(),
+  }),
 }), patchUserData);
 
 module.exports = router;

@@ -10,6 +10,11 @@ router.get('/', getMovies);
 
 router.post('/', celebrate({
   body: Joi.object().keys({
+    country: Joi.string().required(),
+    director: Joi.string().required(),
+    duration: Joi.number().required(),
+    year: Joi.string().required(),
+    description: Joi.string().required(),
     image: Joi.string().required().custom((value, helpers) => {
       if (validator.isURL(value)) {
         return value;
@@ -28,7 +33,7 @@ router.post('/', celebrate({
       .messages({
         'string.required': 'Поле "trailer" должно быть заполнено',
       }),
-      thumbnail: Joi.string().required().custom((value, helpers) => {
+    thumbnail: Joi.string().required().custom((value, helpers) => {
       if (validator.isURL(value)) {
         return value;
       }
@@ -37,9 +42,16 @@ router.post('/', celebrate({
       .messages({
         'string.required': 'Поле "thumbnail" должно быть заполнено',
       }),
-  }).unknown(true),
+    movieId: Joi.number().required(),
+    nameRU: Joi.string().required(),
+    nameEN: Joi.string().required(),
+  }),
 }), postMovie);
 
-router.delete('/:movieId', deleteMovie);
+router.delete('/:movieId', celebrate({
+  params: Joi.object().keys({
+    movieId: Joi.string().hex().alphanum().required(),
+  }),
+}), deleteMovie);
 
 module.exports = router;
