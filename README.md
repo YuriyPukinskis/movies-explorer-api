@@ -1,2 +1,2 @@
 # movies-explorer-api
-Ссылка на бэк api.diplom.students.nomoredomains.icu
+Ссылка на бэк api.diplom.students.nomoredomains.club

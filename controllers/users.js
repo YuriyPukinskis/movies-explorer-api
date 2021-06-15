@@ -4,7 +4,6 @@ const User = require('../models/user');
 const NotFoundError = require('../errors/not-found-err');
 const BadDataError = require('../errors/not-correct-data');
 const SecondRegError = require('../errors/second-reg-err');
-const AuthError = require('../errors/no-auth-err');
 
 module.exports.getUsers = (req, res, next) => {
   User.find()
@@ -18,14 +17,17 @@ module.exports.getUsers = (req, res, next) => {
 
 module.exports.getMe = (req, res, next) => {
   User.findById(req.user._id)
-    .orFail(new Error('NotValidId'))
+    .orFail(new NotFoundError('Пользователя нет в базе'))
     .then((user) => {
       res.status(200).send(user);
     })
     .catch((err) => {
-      if (err.name === 'CastError') { next(new BadDataError('Переданы некорректные данные')); }
-      if (err.message === 'NotValidId') { next(new NotFoundError('Пользователя нет в базе')); }
+      if (err.name === 'CastError') {
+        next(new BadDataError('Переданы некорректные данные'));
+        return (true);
+      }
       next(err);
+      return (true);
     });
 };
 
@@ -45,9 +47,14 @@ module.exports.createUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'MongoError' && err.code === 11000) {
         next(new SecondRegError('Повторная регистрация на тот же адрес почты'));
+        return (true);
       }
-      if (err.name === 'ValidationError') { next(new BadDataError('Введены некорректные данные')); }
+      if (err.name === 'ValidationError') {
+        next(new BadDataError('Введены некорректные данные'));
+        return (true);
+      }
       next(err);
+      return (true);
     });
 };
 
@@ -57,12 +64,20 @@ module.exports.patchUserData = (req, res, next) => {
     .orFail(new NotFoundError('Пользователя нет в базе'))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'CastError') { next(new BadDataError('Переданы некорректные данные')); }
-      // if (err.message === 'NotValidId') { next(new NotFoundError('Пользователя нет в базе')); }
-      if (err.name === 'MongoError' && err.code === 11000) {
-        next(new SecondRegError('Такая почта уже есть'));
+      if (err.name === 'ValidationError') {
+        next(new BadDataError('Введены некорректные данные'));
+        return (true);
       }
-      next(err);
+      if (err.name === 'CastError') {
+        next(new BadDataError('Переданы некорректные данные'));
+      } else {
+        if (err.name === 'MongoError' && err.code === 11000) {
+          next(new SecondRegError('Такая почта уже есть'));
+          return (true);
+        }
+        next(err);
+      }
+      return (true);
     });
 };
 
@@ -75,9 +90,6 @@ module.exports.login = (req, res, next) => {
       });
     })
     .catch((err) => {
-      if (err.name === 'Error') {
-        next(new AuthError('Неверный логин/пароль'));
-      }
       next(err);
     });
 };

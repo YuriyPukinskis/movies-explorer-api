@@ -12,6 +12,7 @@ mongoose.connect('mongodb://localhost:27017/moviedb', {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
+  useUnifiedTopology: true,
 });
 app.listen(PORT, () => {
 
@@ -28,5 +29,5 @@ app.use(cors({
 }));
 
 app.use(requestLogger);
-require('./routes')(app);
 require('./middlewares/rateLimit')(app);
+require('./routes')(app);

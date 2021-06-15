@@ -5,22 +5,9 @@ const NoRightsError = require('../errors/no-rights-err');
 
 module.exports.getMovies = (req, res, next) => {
   Movie.find({ owner: req.user._id })
+    .select('country director duration year description image trailer thumbnail movieId nameRU nameEN')
     .then((movie) => {
-      const newMov = movie.map((ob) => ({
-        _id: ob._id,
-        country: ob.country,
-        director: ob.director,
-        duration: ob.duration,
-        year: ob.year,
-        description: ob.description,
-        image: ob.image,
-        trailer: ob.trailer,
-        thumbnail: ob.thumbnail,
-        movieId: ob.movieId,
-        nameRU: ob.nameRU,
-        nameEN: ob.nameEN,
-      }));
-      res.status(200).send(newMov);
+      res.status(200).send(movie);
     })
     .catch((err) => {
       next(err);
@@ -75,8 +62,12 @@ module.exports.postMovie = (req, res, next) => {
       res.send({ data: newMov });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') { next(new BadDataError('Введены некорректные данные')); }
+      if (err.name === 'ValidationError') {
+        next(new BadDataError('Введены некорректные данные'));
+        return (true);
+      }
       next(err);
+      return (true);
     });
 };
 
@@ -86,19 +77,19 @@ module.exports.deleteMovie = (req, res, next) => {
     .then((movie) => {
       if (JSON.stringify(movie.owner) === JSON.stringify(req.user._id)) {
         Movie.findByIdAndRemove(movie._id)
-          .orFail(new Error('NotValidId'))
           .then((movies) => res.send({ data: movies }))
           .catch((err) => {
-            if (err.name === 'ValidationError') { next(new BadDataError('Переданы некорректные данные')); }
-            // if (err.message === 'NotValidId') { next(new NotFoundError('Фильма нет в базе')); }
+            if (err.name === 'ValidationError') {
+              throw new BadDataError('Переданы некорректные данные');
+            }
             next(err);
+            return (true);
           });
       } else {
-        next(new NoRightsError('Не Ваш то фильм, любезный пользователь, благоволите не удалять его'));
+        throw new NoRightsError('Не Ваш то фильм, любезный пользователь, благоволите не удалять его');
       }
     })
     .catch((err) => {
-      if (err.message === 'NotValidId') { throw new NotFoundError('Фильма нет в базе'); }
       next(err);
     });
 };
