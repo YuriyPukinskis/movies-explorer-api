@@ -11,7 +11,7 @@ const errorHandler = require('../middlewares/errorHandler');
 module.exports = function (app) {
   app.post('/signup', celebrate({
     body: Joi.object().keys({
-      name: Joi.string().min(2).required(),
+      name: Joi.string().min(2).max(30).required(),
       email: Joi.string().email({ tlds: { allow: false } }).required(),
       password: Joi.string().required(),
     }),

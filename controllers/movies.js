@@ -5,7 +5,7 @@ const NoRightsError = require('../errors/no-rights-err');
 
 module.exports.getMovies = (req, res, next) => {
   Movie.find({ owner: req.user._id })
-    .select('country director duration year description image trailer thumbnail movieId nameRU nameEN')
+    .select('-owner')
     .then((movie) => {
       res.status(200).send(movie);
     })
@@ -63,11 +63,9 @@ module.exports.postMovie = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadDataError('Введены некорректные данные'));
-        return (true);
+        return (next(new BadDataError('Введены некорректные данные')));
       }
-      next(err);
-      return (true);
+      return (next(err));
     });
 };
 
@@ -80,10 +78,9 @@ module.exports.deleteMovie = (req, res, next) => {
           .then((movies) => res.send({ data: movies }))
           .catch((err) => {
             if (err.name === 'ValidationError') {
-              throw new BadDataError('Переданы некорректные данные');
+              next(new BadDataError('Переданы некорректные данные'));
             }
-            next(err);
-            return (true);
+            return (next(err));
           });
       } else {
         throw new NoRightsError('Не Ваш то фильм, любезный пользователь, благоволите не удалять его');

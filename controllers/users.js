@@ -23,11 +23,9 @@ module.exports.getMe = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadDataError('Переданы некорректные данные'));
-        return (true);
+        return (next(new BadDataError('Переданы некорректные данные')));
       }
-      next(err);
-      return (true);
+      return (next(err));
     });
 };
 
@@ -46,15 +44,12 @@ module.exports.createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'MongoError' && err.code === 11000) {
-        next(new SecondRegError('Повторная регистрация на тот же адрес почты'));
-        return (true);
+        return (next(new SecondRegError('Повторная регистрация на тот же адрес почты')));
       }
       if (err.name === 'ValidationError') {
-        next(new BadDataError('Введены некорректные данные'));
-        return (true);
+        return (next(new BadDataError('Введены некорректные данные')));
       }
-      next(err);
-      return (true);
+      return (next(err));
     });
 };
 
@@ -65,15 +60,13 @@ module.exports.patchUserData = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadDataError('Введены некорректные данные'));
-        return (true);
+        return (next(new BadDataError('Введены некорректные данные')));
       }
       if (err.name === 'CastError') {
         next(new BadDataError('Переданы некорректные данные'));
       } else {
         if (err.name === 'MongoError' && err.code === 11000) {
-          next(new SecondRegError('Такая почта уже есть'));
-          return (true);
+          return (next(new SecondRegError('Такая почта уже есть')));
         }
         next(err);
       }
