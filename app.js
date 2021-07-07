@@ -22,7 +22,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 
-app.use(cors());
+app.use(cors({
+  origin: true,
+  exposedHeaders: '*',
+  credentials: true,
+}));
 
 app.use(requestLogger);
 require('./middlewares/rateLimit')(app);
